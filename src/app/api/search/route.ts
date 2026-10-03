@@ -1,26 +1,19 @@
 import { NextResponse } from "next/server";
-import { products } from "@/data/products";
+import { searchProducts } from "@/lib/products/repository";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const q = (searchParams.get("q") ?? "").toLowerCase().trim();
+  const q = (searchParams.get("q") ?? "").trim();
   const category = searchParams.get("category");
   const limit = Number(searchParams.get("limit") ?? "12");
 
-  let results = products;
-
-  if (category && category !== "all") {
-    results = results.filter((p) => p.categorySlug === category);
+  if (!q) {
+    return NextResponse.json({ products: [] });
   }
 
-  if (q) {
-    results = results.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q),
-    );
+  let results = await searchProducts(q, Math.max(limit, 24));
+  if (category && category !== "all") {
+    results = results.filter((p) => p.categorySlug === category);
   }
 
   return NextResponse.json({

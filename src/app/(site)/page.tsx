@@ -1,4 +1,3 @@
-import { BrandsSection } from "@/components/home/brands-section";
 import { BulkOrderCta } from "@/components/home/bulk-order-cta";
 import { CategoryCarousel } from "@/components/home/category-carousel";
 import { FeaturedProducts } from "@/components/home/featured-products";
@@ -13,13 +12,26 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    email: siteConfig.email,
+    telephone: siteConfig.phone,
+    description: siteConfig.description,
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+      />
       <HeroSection />
       <TrustBar />
       <CategoryCarousel />
       <FeaturedProducts />
-      <BrandsSection />
       <BulkOrderCta />
     </>
   );

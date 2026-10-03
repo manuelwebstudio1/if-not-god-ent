@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import type { Product } from "@/types/commerce";
+import { PLACEHOLDER_PRODUCT_IMAGE } from "@/lib/products/defaults";
 import { cn, formatPrice } from "@/lib/utils";
 import { buildProductWhatsAppMessage, openWhatsApp } from "@/lib/whatsapp";
 import { useCartStore } from "@/stores/cart-store";
@@ -16,7 +17,8 @@ export function ProductCard({ product }: { product: Product }) {
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const inWishlist = useWishlistStore((s) => s.has(product.id));
   const [quickOpen, setQuickOpen] = useState(false);
-  const outOfStock = product.stock <= 0;
+  const outOfStock = product.stock <= 0 || product.isAvailable === false;
+  const imageSrc = product.images[0] || PLACEHOLDER_PRODUCT_IMAGE;
   const discount =
     product.compareAtPrice && product.compareAtPrice > product.price
       ? Math.round(
@@ -41,7 +43,7 @@ export function ProductCard({ product }: { product: Product }) {
           )}
           <Link href={`/shop/${product.categorySlug}/${product.slug}`}>
             <Image
-              src={product.images[0]}
+              src={imageSrc}
               alt={product.name}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"

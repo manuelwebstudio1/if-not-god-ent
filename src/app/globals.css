@@ -66,3 +66,30 @@ body {
 .reveal {
   animation: fade-up 0.6s ease-out both;
 }
+
+@keyframes trust-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.trust-ticker-track {
+  animation: trust-ticker 45s linear infinite;
+}
+
+.trust-ticker:hover .trust-ticker-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trust-ticker-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+}

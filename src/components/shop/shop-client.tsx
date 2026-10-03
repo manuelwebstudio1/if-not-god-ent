@@ -1,39 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 import { ProductCard } from "@/components/product/product-card";
-import { brands } from "@/data/brands";
-import { categories } from "@/data/categories";
-import { filterProducts, type ShopFilters } from "@/lib/catalog";
+import type { Brand, Category, Product } from "@/types/commerce";
+import type { ShopFilters } from "@/lib/catalog";
 
-export function ShopClient() {
-  const searchParams = useSearchParams();
+type Props = {
+  products: Product[];
+  categories: Pick<Category, "id" | "name" | "slug">[];
+  brands: Pick<Brand, "id" | "name" | "slug">[];
+  filters: ShopFilters;
+};
 
-  const filters: ShopFilters = useMemo(
-    () => ({
-      search: searchParams.get("search") ?? undefined,
-      category: searchParams.get("category") ?? undefined,
-      brand: searchParams.get("brand") ?? undefined,
-      minPrice: searchParams.get("minPrice")
-        ? Number(searchParams.get("minPrice"))
-        : undefined,
-      maxPrice: searchParams.get("maxPrice")
-        ? Number(searchParams.get("maxPrice"))
-        : undefined,
-      minRating: searchParams.get("minRating")
-        ? Number(searchParams.get("minRating"))
-        : undefined,
-      inStock: searchParams.get("inStock") === "1",
-      onSale: searchParams.get("onSale") === "1",
-      isNew: searchParams.get("new") === "1",
-      sort: (searchParams.get("sort") as ShopFilters["sort"]) ?? "featured",
-    }),
-    [searchParams],
-  );
-
-  const products = filterProducts(filters);
-
+export function ShopClient({ products, categories, brands, filters }: Props) {
   return (
     <div className="ing-container py-10 lg:py-14">
       <div className="mb-8">
@@ -45,7 +23,7 @@ export function ShopClient() {
 
       <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-6 border border-neutral-200 bg-white p-5 h-fit">
-          <FilterForm filters={filters} />
+          <FilterForm filters={filters} categories={categories} brands={brands} />
         </aside>
 
         <div>
@@ -54,7 +32,7 @@ export function ShopClient() {
               <span className="font-semibold text-black">{products.length}</span>{" "}
               products
             </p>
-            <SortSelect current={filters.sort ?? "featured"} />
+            <SortSelect current={filters.sort ?? "featured"} filters={filters} />
           </div>
 
           {products.length === 0 ? (
@@ -74,9 +52,36 @@ export function ShopClient() {
   );
 }
 
-function SortSelect({ current }: { current: string }) {
+function hiddenFields(filters: ShopFilters, omit: (keyof ShopFilters)[]) {
+  const entries: [string, string][] = [];
+  const add = (key: keyof ShopFilters, name: string, value: string | undefined) => {
+    if (omit.includes(key) || value == null || value === "") return;
+    entries.push([name, value]);
+  };
+  add("search", "search", filters.search);
+  add("category", "category", filters.category);
+  add("brand", "brand", filters.brand);
+  if (filters.minPrice != null) entries.push(["minPrice", String(filters.minPrice)]);
+  if (filters.maxPrice != null) entries.push(["maxPrice", String(filters.maxPrice)]);
+  if (filters.minRating != null) entries.push(["minRating", String(filters.minRating)]);
+  if (filters.inStock) entries.push(["inStock", "1"]);
+  if (filters.onSale) entries.push(["onSale", "1"]);
+  if (filters.isNew) entries.push(["new", "1"]);
+  return entries;
+}
+
+function SortSelect({
+  current,
+  filters,
+}: {
+  current: string;
+  filters: ShopFilters;
+}) {
   return (
     <form method="get" className="flex items-center gap-2">
+      {hiddenFields(filters, ["sort"]).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
       <label htmlFor="sort" className="text-xs font-semibold uppercase text-muted">
         Sort
       </label>
@@ -98,9 +103,20 @@ function SortSelect({ current }: { current: string }) {
   );
 }
 
-function FilterForm({ filters }: { filters: ShopFilters }) {
+function FilterForm({
+  filters,
+  categories,
+  brands,
+}: {
+  filters: ShopFilters;
+  categories: Pick<Category, "id" | "name" | "slug">[];
+  brands: Pick<Brand, "id" | "name" | "slug">[];
+}) {
   return (
     <form method="get" className="space-y-5 text-sm">
+      {filters.sort && filters.sort !== "featured" ? (
+        <input type="hidden" name="sort" value={filters.sort} />
+      ) : null}
       <div>
         <label className="text-xs font-bold uppercase tracking-wide">Category</label>
         <select

@@ -1,6 +1,11 @@
 import { ShopClient } from "@/components/shop/shop-client";
+import { parseShopFilters } from "@/lib/catalog";
+import {
+  filterProducts,
+  listBrandsForStore,
+  listCategoriesWithCounts,
+} from "@/lib/products/repository";
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Shop",
@@ -8,16 +13,25 @@ export const metadata: Metadata = {
     "Browse premium building materials, power tools, plumbing supplies and industrial equipment.",
 };
 
-export default function ShopPage() {
+type Props = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function ShopPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const filters = parseShopFilters(params);
+  const [products, categories, brands] = await Promise.all([
+    filterProducts(filters),
+    listCategoriesWithCounts(),
+    listBrandsForStore(),
+  ]);
+
   return (
-    <Suspense
-      fallback={
-        <div className="ing-container py-20 text-center text-sm text-muted">
-          Loading products…
-        </div>
-      }
-    >
-      <ShopClient />
-    </Suspense>
+    <ShopClient
+      products={products}
+      categories={categories}
+      brands={brands}
+      filters={filters}
+    />
   );
 }

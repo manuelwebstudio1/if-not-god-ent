@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/product/product-card";
-import { getFeaturedProducts } from "@/data/products";
+import { listProducts } from "@/lib/products/repository";
 
-export function FeaturedProducts() {
-  const products = getFeaturedProducts();
+export async function FeaturedProducts() {
+  const products = await listProducts({ featured: true, limit: 8 });
 
   return (
     <section className="bg-surface py-14 lg:py-16">
@@ -19,11 +19,17 @@ export function FeaturedProducts() {
             View All Products →
           </Link>
         </div>
-        <div className="grid grid-cols-1 gap-4 xs:grid-cols-2 lg:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {products.length === 0 ? (
+          <p className="text-sm text-muted">
+            Featured products will appear here once added in the admin dashboard.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

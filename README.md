@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IF NOT GOD ENT — Premium E-Commerce Platform
 
-## Getting Started
+Professional construction, engineering and industrial equipment storefront for Ghana.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router) · **React 19** · **TypeScript**
+- **Tailwind CSS v4** · **Framer Motion** · **Lucide Icons**
+- **Zustand** (cart & wishlist) · **React Hook Form** · **Zod**
+- **Prisma** + **PostgreSQL** (schema ready; local JSON store for orders/quotes without DB)
+- **JWT sessions** (`jose` + `bcryptjs`) — compatible with Next.js 16
+
+## Getting started
 
 ```bash
+cd if-not-god-ent
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### WhatsApp & contact (central config)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Edit `src/config/site.ts` or environment variables:
 
-## Learn More
+- `NEXT_PUBLIC_WHATSAPP` — WhatsApp number (country code, no +)
+- `NEXT_PUBLIC_PHONE` / `NEXT_PUBLIC_EMAIL`
 
-To learn more about Next.js, take a look at the following resources:
+### Admin access
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+On first login attempt, a default admin is seeded:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Email: `admin@ifnotgodent.com`
+- Password: `ADMIN_PASSWORD` from env (default `Admin@12345`)
 
-## Deploy on Vercel
+Customer registration: `/account/register`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Database (optional)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Set `DATABASE_URL` in `.env.local`
+2. `npx prisma migrate dev`
+3. Seed products from `src/data/*` into Prisma (extend as needed)
+
+Until PostgreSQL is connected, orders and quotes persist to `data/local-db.json`.
+
+### Payments
+
+Checkout collects method selection and creates orders with `paymentStatus: PENDING`.
+Implement providers in `src/lib/payments/` using server-only env keys (`PAYSTACK_SECRET_KEY`, etc.).
+
+## Project structure
+
+- `src/app/(site)/` — storefront pages
+- `src/app/admin/` — admin dashboard
+- `src/components/` — UI, layout, product, forms
+- `src/data/` — catalog seed data
+- `src/stores/` — cart & wishlist
+- `prisma/schema.prisma` — full production schema
+
+## Coupons (demo)
+
+- `ING10` — 10% off
+- `BUILD5` — 5% off
+
+Built for **IF NOT GOD ENT** — *Building Excellence. Delivering Quality.*

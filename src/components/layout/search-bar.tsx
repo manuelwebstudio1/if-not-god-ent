@@ -3,7 +3,7 @@
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { categories } from "@/data/categories";
+import type { Category } from "@/types/commerce";
 import { cn } from "@/lib/utils";
 
 type Suggestion = {
@@ -15,7 +15,13 @@ type Suggestion = {
   price: number;
 };
 
-export function SearchBar({ className }: { className?: string }) {
+export function SearchBar({
+  className,
+  categories = [],
+}: {
+  className?: string;
+  categories?: Pick<Category, "id" | "name" | "slug">[];
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");

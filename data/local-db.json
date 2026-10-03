@@ -1,0 +1,13 @@
+{
+  "orders": [],
+  "quotes": [],
+  "users": [
+    {
+      "id": "admin-1",
+      "name": "Administrator",
+      "email": "admin@ifnotgodent.com",
+      "passwordHash": "$2b$12$E3YAO7OaD0B4q3a0DHgff.Yyts22qXEAkxM3xfs.hNh//ggOPntiC",
+      "role": "ADMIN"
+    }
+  ]
+}

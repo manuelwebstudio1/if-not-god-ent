@@ -9,19 +9,24 @@ import { buttonVariants } from "@/components/ui/button";
 import type { Product } from "@/types/commerce";
 import { cn, formatPrice } from "@/lib/utils";
 import { buildProductWhatsAppMessage, openWhatsApp } from "@/lib/whatsapp";
-import { getRelatedProducts } from "@/data/products";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
 
-export function ProductDetail({ product }: { product: Product }) {
+export function ProductDetail({
+  product,
+  relatedProducts,
+}: {
+  product: Product;
+  relatedProducts: Product[];
+}) {
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [zoom, setZoom] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const inWishlist = useWishlistStore((s) => s.has(product.id));
-  const outOfStock = product.stock <= 0;
-  const related = getRelatedProducts(product);
+  const outOfStock = product.stock <= 0 || product.isAvailable === false;
+  const related = relatedProducts;
 
   return (
     <div className="ing-container py-8 lg:py-12">

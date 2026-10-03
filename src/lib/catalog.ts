@@ -1,6 +1,3 @@
-import type { Product } from "@/types/commerce";
-import { products } from "@/data/products";
-
 export type ShopFilters = {
   search?: string;
   category?: string;
@@ -20,65 +17,23 @@ export type ShopFilters = {
     | "price-desc";
 };
 
-export function filterProducts(filters: ShopFilters): Product[] {
-  let list = [...products];
-
-  if (filters.search) {
-    const q = filters.search.toLowerCase();
-    list = list.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q),
-    );
-  }
-  if (filters.category) {
-    list = list.filter((p) => p.categorySlug === filters.category);
-  }
-  if (filters.brand) {
-    list = list.filter((p) => p.brandSlug === filters.brand);
-  }
-  if (filters.minPrice != null) {
-    list = list.filter((p) => p.price >= filters.minPrice!);
-  }
-  if (filters.maxPrice != null) {
-    list = list.filter((p) => p.price <= filters.maxPrice!);
-  }
-  if (filters.minRating != null) {
-    list = list.filter((p) => p.rating >= filters.minRating!);
-  }
-  if (filters.inStock) {
-    list = list.filter((p) => p.stock > 0);
-  }
-  if (filters.onSale) {
-    list = list.filter(
-      (p) => p.compareAtPrice != null && p.compareAtPrice > p.price,
-    );
-  }
-  if (filters.isNew) {
-    list = list.filter((p) => p.isNew);
-  }
-
-  switch (filters.sort) {
-    case "newest":
-      list.sort((a, b) => Number(b.isNew) - Number(a.isNew));
-      break;
-    case "best-selling":
-      list.sort((a, b) => Number(b.isBestSeller) - Number(a.isBestSeller));
-      break;
-    case "rating":
-      list.sort((a, b) => b.rating - a.rating);
-      break;
-    case "price-asc":
-      list.sort((a, b) => a.price - b.price);
-      break;
-    case "price-desc":
-      list.sort((a, b) => b.price - a.price);
-      break;
-    default:
-      list.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured));
-  }
-
-  return list;
+export function parseShopFilters(
+  params: Record<string, string | string[] | undefined>,
+): ShopFilters {
+  const get = (key: string) => {
+    const v = params[key];
+    return Array.isArray(v) ? v[0] : v;
+  };
+  return {
+    search: get("search") ?? undefined,
+    category: get("category") ?? undefined,
+    brand: get("brand") ?? undefined,
+    minPrice: get("minPrice") ? Number(get("minPrice")) : undefined,
+    maxPrice: get("maxPrice") ? Number(get("maxPrice")) : undefined,
+    minRating: get("minRating") ? Number(get("minRating")) : undefined,
+    inStock: get("inStock") === "1",
+    onSale: get("onSale") === "1",
+    isNew: get("new") === "1",
+    sort: (get("sort") as ShopFilters["sort"]) ?? "featured",
+  };
 }

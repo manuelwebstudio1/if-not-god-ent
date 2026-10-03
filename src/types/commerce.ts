@@ -23,11 +23,14 @@ export type Product = {
   brandSlug: string;
   category: string;
   categorySlug: string;
+  subcategory?: string;
+  subcategorySlug?: string;
   price: number;
   compareAtPrice?: number;
   rating: number;
   reviewCount: number;
   stock: number;
+  isAvailable?: boolean;
   isNew?: boolean;
   isFeatured?: boolean;
   isBestSeller?: boolean;

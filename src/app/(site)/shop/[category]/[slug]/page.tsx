@@ -1,20 +1,18 @@
 import { ProductDetail } from "@/components/product/product-detail";
-import { getProductBySlug, products } from "@/data/products";
+import {
+  getProductBySlug,
+  getRelatedProducts,
+} from "@/lib/products/repository";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-type Props = { params: Promise<{ category: string; slug: string }> };
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  return products.map((p) => ({
-    category: p.categorySlug,
-    slug: p.slug,
-  }));
-}
+type Props = { params: Promise<{ category: string; slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category, slug } = await params;
-  const product = getProductBySlug(category, slug);
+  const product = await getProductBySlug(category, slug);
   if (!product) return {};
   return {
     title: product.name,
@@ -29,8 +27,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { category, slug } = await params;
-  const product = getProductBySlug(category, slug);
+  const product = await getProductBySlug(category, slug);
   if (!product) notFound();
+
+  const relatedProducts = await getRelatedProducts(product);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -57,7 +57,7 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ProductDetail product={product} />
+      <ProductDetail product={product} relatedProducts={relatedProducts} />
     </>
   );
 }

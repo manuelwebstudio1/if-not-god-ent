@@ -17,7 +17,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { siteConfig } from "@/config/site";
-import { categories } from "@/data/categories";
+import type { Category } from "@/types/commerce";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import { useWishlistStore } from "@/stores/wishlist-store";
@@ -28,13 +28,16 @@ import { buttonVariants } from "@/components/ui/button";
 const navLinks = [
   { href: "/", label: "HOME" },
   { href: "/shop", label: "SHOP" },
-  { href: "/brands", label: "BRANDS" },
   { href: "/about", label: "ABOUT US" },
   { href: "/blog", label: "BLOG" },
   { href: "/contact", label: "CONTACT US" },
 ];
 
-export function Header() {
+type HeaderProps = {
+  categories?: Pick<Category, "id" | "name" | "slug">[];
+};
+
+export function Header({ categories = [] }: HeaderProps) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -118,7 +121,7 @@ export function Header() {
           <Logo className="shrink-0 lg:mr-2" variant="mark" />
 
           <div className="hidden flex-1 lg:block">
-            <SearchBar />
+            <SearchBar categories={categories} />
           </div>
 
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
@@ -159,7 +162,7 @@ export function Header() {
 
         {/* Mobile search */}
         <div className="ing-container pb-3 lg:hidden">
-          <SearchBar />
+          <SearchBar categories={categories} />
         </div>
       </div>
 
