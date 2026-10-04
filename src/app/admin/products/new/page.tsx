@@ -21,7 +21,7 @@ export default function NewProductPage() {
           { label: "Add product" },
         ]}
         actions={
-          <Link href="/admin/products" className={cn(buttonVariants({ variant: "outlineDark", size: "sm" }))}>
+          <Link href="/admin/products" prefetch={false} className={cn(buttonVariants({ variant: "outlineDark", size: "sm" }))}>
             View all products
           </Link>
         }

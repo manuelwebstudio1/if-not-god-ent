@@ -69,8 +69,12 @@ async function readDb(): Promise<DbFile> {
 }
 
 async function writeDb(db: DbFile) {
-  await fs.mkdir(path.dirname(dbPath), { recursive: true });
-  await fs.writeFile(dbPath, JSON.stringify(db, null, 2), "utf8");
+  try {
+    await fs.mkdir(path.dirname(dbPath), { recursive: true });
+    await fs.writeFile(dbPath, JSON.stringify(db, null, 2), "utf8");
+  } catch {
+    // Vercel and other serverless hosts cannot persist the local JSON file.
+  }
 }
 
 export async function saveOrder(order: StoredOrder) {

@@ -16,12 +16,12 @@ import {
 import { formatPrice, cn } from "@/lib/utils";
 import { getSession } from "@/lib/auth";
 
-async function settled<T>(promise: Promise<T>, fallback: T): Promise<T> {
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+async function safe<T>(promise: Promise<T>, fallback: T): Promise<T> {
   try {
-    return await Promise.race([
-      promise,
-      new Promise<T>((resolve) => setTimeout(() => resolve(fallback), 2500)),
-    ]);
+    return await promise;
   } catch {
     return fallback;
   }
@@ -31,12 +31,12 @@ export default async function AdminDashboardPage() {
   const session = await getSession();
   const [orders, quotes, customers, lowStock, productCount, recentProducts] =
     await Promise.all([
-      settled(listOrders(), []),
-      settled(listQuotes(), []),
-      settled(listCustomers(), []),
-      settled(listLowStockProducts(5), []),
-      settled(countProducts(true), 0),
-      settled(listProducts({ admin: true, limit: 6 }), []),
+      safe(listOrders(), []),
+      safe(listQuotes(), []),
+      safe(listCustomers(), []),
+      safe(listLowStockProducts(5), []),
+      safe(countProducts(true), 0),
+      safe(listProducts({ admin: true, limit: 6 }), []),
     ]);
 
   const totalSales = orders.reduce((s, o) => s + o.total, 0);
@@ -86,6 +86,7 @@ export default async function AdminDashboardPage() {
         </div>
         <Link
           href="/admin/products/new"
+          prefetch={false}
           className="inline-flex items-center gap-2 bg-gold px-5 py-3 text-xs font-bold uppercase tracking-wide text-black hover:bg-gold-light"
         >
           <PackagePlus className="h-4 w-4" />
@@ -98,6 +99,7 @@ export default async function AdminDashboardPage() {
           <Link
             key={kpi.label}
             href={kpi.href}
+            prefetch={false}
             className="border border-neutral-200 bg-white p-5 shadow-sm transition-colors hover:border-gold"
           >
             <p className="text-[11px] font-bold uppercase tracking-wide text-muted">
@@ -112,6 +114,7 @@ export default async function AdminDashboardPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Link
           href="/admin/products/new"
+          prefetch={false}
           className="flex items-start gap-4 bg-black p-5 text-white hover:bg-neutral-900"
         >
           <span className="flex h-11 w-11 items-center justify-center bg-gold text-black">
@@ -126,6 +129,7 @@ export default async function AdminDashboardPage() {
         </Link>
         <Link
           href="/admin/inventory"
+          prefetch={false}
           className="flex items-start gap-4 border border-neutral-200 bg-white p-5 hover:border-gold"
         >
           <span className="flex h-11 w-11 items-center justify-center bg-neutral-100 text-black">
@@ -140,6 +144,7 @@ export default async function AdminDashboardPage() {
         </Link>
         <Link
           href="/admin/customers"
+          prefetch={false}
           className="flex items-start gap-4 border border-neutral-200 bg-white p-5 hover:border-gold"
         >
           <span className="flex h-11 w-11 items-center justify-center bg-neutral-100 text-black">
@@ -156,7 +161,11 @@ export default async function AdminDashboardPage() {
         <section className="border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-black uppercase">Recent orders</h2>
-            <Link href="/admin/orders" className="text-xs font-bold uppercase text-gold-dark hover:underline">
+            <Link
+              href="/admin/orders"
+              prefetch={false}
+              className="text-xs font-bold uppercase text-gold-dark hover:underline"
+            >
               View all
             </Link>
           </div>
@@ -188,14 +197,22 @@ export default async function AdminDashboardPage() {
         <section className="border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-black uppercase">Catalog</h2>
-            <Link href="/admin/products" className="text-xs font-bold uppercase text-gold-dark hover:underline">
+            <Link
+              href="/admin/products"
+              prefetch={false}
+              className="text-xs font-bold uppercase text-gold-dark hover:underline"
+            >
               Manage
             </Link>
           </div>
           {recentProducts.length === 0 ? (
             <p className="mt-8 text-sm text-muted">
               No products yet.{" "}
-              <Link href="/admin/products/new" className="font-semibold text-gold-dark hover:underline">
+              <Link
+                href="/admin/products/new"
+                prefetch={false}
+                className="font-semibold text-gold-dark hover:underline"
+              >
                 Add the first product
               </Link>
             </p>
@@ -203,7 +220,11 @@ export default async function AdminDashboardPage() {
             <ul className="mt-4 divide-y divide-neutral-100 text-sm">
               {recentProducts.map((p) => (
                 <li key={p.id} className="flex items-center justify-between py-3">
-                  <Link href={`/admin/products/${p.id}/edit`} className="font-medium hover:text-gold-dark">
+                  <Link
+                    href={`/admin/products/${p.id}/edit`}
+                    prefetch={false}
+                    className="font-medium hover:text-gold-dark"
+                  >
                     {p.name}
                   </Link>
                   <span className={cn("text-xs font-semibold", p.stock <= 0 ? "text-red-600" : "text-muted")}>
@@ -234,7 +255,11 @@ export default async function AdminDashboardPage() {
             <FileText className="h-4 w-4 text-gold-dark" />
             Quote requests
           </h2>
-          <Link href="/admin/quotes" className="text-xs font-bold uppercase text-gold-dark hover:underline">
+          <Link
+            href="/admin/quotes"
+            prefetch={false}
+            className="text-xs font-bold uppercase text-gold-dark hover:underline"
+          >
             Open inbox
           </Link>
         </div>

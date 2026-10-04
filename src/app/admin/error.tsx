@@ -16,14 +16,25 @@ export default function AdminError({
         <p className="text-xs font-bold uppercase tracking-widest text-gold">Admin</p>
         <h1 className="mt-2 text-2xl font-black uppercase">Dashboard could not load</h1>
         <p className="mt-2 max-w-xl text-sm text-muted">
-          The admin area is available, but a catalog or settings request failed.
-          You can retry or add products once Supabase keys are valid.
+          Something went wrong while loading this admin page. Retry to stay signed
+          in, or open the catalog from the links below.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <button type="button" onClick={reset} className={cn(buttonVariants({ size: "sm" }))}>
             Try again
           </button>
-          <Link href="/admin/products/new" className={cn(buttonVariants({ variant: "outlineDark", size: "sm" }))}>
+          <Link
+            href="/admin/products"
+            prefetch={false}
+            className={cn(buttonVariants({ variant: "outlineDark", size: "sm" }))}
+          >
+            All products
+          </Link>
+          <Link
+            href="/admin/products/new"
+            prefetch={false}
+            className={cn(buttonVariants({ variant: "outlineDark", size: "sm" }))}
+          >
             Add product
           </Link>
         </div>

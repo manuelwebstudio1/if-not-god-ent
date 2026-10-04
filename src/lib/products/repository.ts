@@ -72,16 +72,20 @@ export async function listProducts(options?: {
   limit?: number;
 }): Promise<Product[]> {
   if (!configured()) return [];
-  const supabase = client(options?.admin);
-  let q = supabase.from("products").select(productSelect).order("created_at", {
-    ascending: false,
-  });
-  if (!options?.admin) q = q.eq("is_available", true);
-  if (options?.featured) q = q.eq("is_featured", true);
-  if (options?.limit) q = q.limit(options.limit);
-  const { data, error } = await q;
-  if (error) throw error;
-  return ((data ?? []) as DbProductRow[]).map(mapRowToProduct);
+  try {
+    const supabase = client(options?.admin);
+    let q = supabase.from("products").select(productSelect).order("created_at", {
+      ascending: false,
+    });
+    if (!options?.admin) q = q.eq("is_available", true);
+    if (options?.featured) q = q.eq("is_featured", true);
+    if (options?.limit) q = q.limit(options.limit);
+    const { data, error } = await q;
+    if (error) return [];
+    return ((data ?? []) as DbProductRow[]).map(mapRowToProduct);
+  } catch {
+    return [];
+  }
 }
 
 export async function getProductBySlug(
@@ -200,13 +204,17 @@ export async function getRelatedProducts(product: Product, limit = 4) {
 
 export async function listCategories(): Promise<CategoryRow[]> {
   if (!configured()) return [];
-  const { data, error } = await client()
-    .from("categories")
-    .select("id, name, slug, image, sort_order")
-    .order("sort_order", { ascending: true })
-    .order("name", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as CategoryRow[];
+  try {
+    const { data, error } = await client()
+      .from("categories")
+      .select("id, name, slug, image, sort_order")
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true });
+    if (error) return [];
+    return (data ?? []) as CategoryRow[];
+  } catch {
+    return [];
+  }
 }
 
 export async function listCategoriesWithCounts(): Promise<Category[]> {
@@ -274,18 +282,26 @@ export async function listLowStockProducts(threshold = 5) {
 
 export async function listSubcategories(categoryId?: string) {
   if (!configured()) return [];
-  let q = client().from("subcategories").select("*").order("name");
-  if (categoryId) q = q.eq("category_id", categoryId);
-  const { data, error } = await q;
-  if (error) throw error;
-  return data ?? [];
+  try {
+    let q = client().from("subcategories").select("*").order("name");
+    if (categoryId) q = q.eq("category_id", categoryId);
+    const { data, error } = await q;
+    if (error) return [];
+    return data ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function listBrands() {
   if (!configured()) return [];
-  const { data, error } = await client().from("brands").select("*").order("name");
-  if (error) throw error;
-  return data ?? [];
+  try {
+    const { data, error } = await client().from("brands").select("*").order("name");
+    if (error) return [];
+    return data ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function createCategory(input: {
@@ -443,9 +459,18 @@ export async function getProductsByIds(ids: string[]) {
 
 export async function countProducts(admin = false) {
   if (!configured()) return 0;
-  let q = client(admin).from("products").select("*", { count: "exact", head: true });
-  if (!admin) q = q.eq("is_available", true);
-  const { count, error } = await q;
-  if (error) throw error;
-  return count ?? 0;
+  try {
+    let q = client().from("products").select("id", { count: "exact", head: true });
+    if (!admin) q = q.eq("is_available", true);
+    const { count, error } = await q;
+    if (!error) return count ?? 0;
+
+    const retry = await client()
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("is_available", true);
+    return retry.count ?? 0;
+  } catch {
+    return 0;
+  }
 }

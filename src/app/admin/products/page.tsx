@@ -22,7 +22,7 @@ export default async function AdminProductsPage() {
           { label: "Products" },
         ]}
         actions={
-          <Link href="/admin/products/new" className={cn(buttonVariants({ size: "sm" }))}>
+          <Link href="/admin/products/new" prefetch={false} className={cn(buttonVariants({ size: "sm" }))}>
             <PackagePlus className="h-4 w-4" />
             Add product
           </Link>
@@ -69,6 +69,7 @@ async function ProductsTable() {
                   </p>
                   <Link
                     href="/admin/products/new"
+                    prefetch={false}
                     className={cn(buttonVariants({ size: "sm" }), "mt-4 inline-flex")}
                   >
                     Add product
