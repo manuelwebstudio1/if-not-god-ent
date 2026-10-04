@@ -210,16 +210,29 @@ export async function listCategories(): Promise<CategoryRow[]> {
 }
 
 export async function listCategoriesWithCounts(): Promise<Category[]> {
-  const [remote, products] = await Promise.all([
-    listCategories(),
-    listProducts({ admin: true }).catch(() => [] as Product[]),
-  ]);
+  const remote = await listCategories();
+  if (!configured()) {
+    return remote.map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      image: c.image || DEFAULT_CATEGORY_IMAGE,
+      productCount: 0,
+    }));
+  }
+
+  const { data, error } = await client()
+    .from("products")
+    .select("category_id")
+    .eq("is_available", true);
+  const rows = error ? [] : (data ?? []);
+
   return remote.map((c) => ({
     id: c.id,
     name: c.name,
     slug: c.slug,
     image: c.image || DEFAULT_CATEGORY_IMAGE,
-    productCount: products.filter((p) => p.categorySlug === c.slug).length,
+    productCount: rows.filter((p) => p.category_id === c.id).length,
   }));
 }
 

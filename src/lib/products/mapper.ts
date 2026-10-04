@@ -1,18 +1,27 @@
 import type { Product } from "@/types/commerce";
 import type { DbProductRow } from "./types";
 
+function rel<T extends { name?: string; slug?: string }>(
+  value: T | T[] | null | undefined,
+) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export function mapRowToProduct(row: DbProductRow): Product {
+  const category = rel(row.categories);
+  const subcategory = rel(row.subcategories);
+  const brand = rel(row.brands);
   return {
     id: row.id,
     name: row.name,
     slug: row.slug,
     sku: row.sku,
-    brand: row.brands?.name ?? "",
-    brandSlug: row.brands?.slug ?? "",
-    category: row.categories?.name ?? "",
-    categorySlug: row.categories?.slug ?? "",
-    subcategory: row.subcategories?.name,
-    subcategorySlug: row.subcategories?.slug,
+    brand: brand?.name ?? "",
+    brandSlug: brand?.slug ?? "",
+    category: category?.name ?? "",
+    categorySlug: category?.slug ?? "",
+    subcategory: subcategory?.name,
+    subcategorySlug: subcategory?.slug,
     price: Number(row.price),
     compareAtPrice:
       row.compare_at_price != null ? Number(row.compare_at_price) : undefined,
