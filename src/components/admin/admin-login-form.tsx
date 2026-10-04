@@ -35,7 +35,10 @@ export function AdminLoginForm({ defaultEmail }: { defaultEmail: string }) {
         setPending(false);
         return;
       }
-      window.location.href = "/admin";
+      const next =
+        new URLSearchParams(window.location.search).get("redirect") ||
+        "/admin";
+      window.location.replace(next.startsWith("/admin") ? next : "/admin");
     } catch {
       setError("Could not reach the server. Restart npm run dev and try again.");
       setPending(false);

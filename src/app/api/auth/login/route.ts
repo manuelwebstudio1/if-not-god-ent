@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import {
   attachSessionCookie,
-  createSession,
   loginUser,
   signSessionToken,
 } from "@/lib/auth";
@@ -38,18 +37,12 @@ export async function POST(request: Request) {
     };
 
     const token = await signSessionToken(sessionUser);
-    try {
-      await createSession(sessionUser);
-    } catch {
-      // Cookie on the response is enough
-    }
-
     const response = NextResponse.json({
       ok: true,
       role: user.role,
       redirectTo: user.role === "ADMIN" ? "/admin" : "/account",
     });
-    attachSessionCookie(response, token, request.url);
+    attachSessionCookie(response, token, request);
     return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Login failed";

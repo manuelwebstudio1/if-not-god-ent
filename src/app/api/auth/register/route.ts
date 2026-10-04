@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       role: user.role,
     });
     const response = NextResponse.json({ ok: true });
-    attachSessionCookie(response, token, request.url);
+    attachSessionCookie(response, token, request);
     return response;
   } catch (error) {
     const message =

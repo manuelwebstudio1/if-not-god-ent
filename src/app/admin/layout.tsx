@@ -1,6 +1,9 @@
 import { AdminShell } from "@/components/admin/admin-shell";
 import { getSession } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminLayout({
   children,
 }: {

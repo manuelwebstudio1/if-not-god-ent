@@ -5,6 +5,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export default function NewProductPage() {
   const configured = isSupabaseConfigured();
 

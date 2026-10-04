@@ -1,12 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose";
-
-const SESSION_COOKIE = "ing_session";
-
-const secret = new TextEncoder().encode(
-  process.env.AUTH_SECRET ?? "dev-only-change-in-production-ing-secret",
-);
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth-session";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -25,8 +19,8 @@ export async function proxy(request: NextRequest) {
   }
 
   try {
-    const { payload } = await jwtVerify(token, secret);
-    if (payload.role !== "ADMIN") {
+    const session = await verifySessionToken(token);
+    if (session.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
   } catch {
@@ -35,7 +29,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(login);
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+  return response;
 }
 
 export const config = {

@@ -1,36 +1,21 @@
 import bcrypt from "bcryptjs";
-import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getAdminCredentials } from "@/config/admin";
+import {
+  SESSION_COOKIE,
+  sessionCookieOptions,
+  signSessionToken,
+  verifySessionToken,
+  type SessionUser,
+} from "@/lib/auth-session";
 import {
   syncAdminAccount,
   findUserByEmail,
   createUser,
 } from "@/lib/local-db";
 
-export const SESSION_COOKIE = "ing_session";
-const secret = new TextEncoder().encode(
-  process.env.AUTH_SECRET ?? "dev-only-change-in-production-ing-secret",
-);
-
-export type SessionUser = {
-  id: string;
-  email: string;
-  name: string;
-  role: "CUSTOMER" | "ADMIN";
-};
-
-export function sessionCookieOptions(requestUrl?: string) {
-  const https = Boolean(requestUrl?.startsWith("https://"));
-  return {
-    httpOnly: true,
-    secure: https,
-    sameSite: "lax" as const,
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  };
-}
+export { SESSION_COOKIE, signSessionToken, type SessionUser };
 
 export async function hashPassword(password: string) {
   return bcrypt.hash(password, 12);
@@ -40,25 +25,12 @@ export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
-export async function signSessionToken(user: SessionUser) {
-  return new SignJWT({
-    sub: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-  })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(secret);
-}
-
 export function attachSessionCookie(
   response: NextResponse,
   token: string,
-  requestUrl?: string,
+  request?: Request,
 ) {
-  response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions(requestUrl));
+  response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions(request));
   return response;
 }
 
@@ -73,10 +45,10 @@ export function clearSessionCookie(response: NextResponse) {
   return response;
 }
 
-export async function createSession(user: SessionUser) {
+export async function createSession(user: SessionUser, request?: Request) {
   const token = await signSessionToken(user);
   const jar = await cookies();
-  jar.set(SESSION_COOKIE, token, sessionCookieOptions());
+  jar.set(SESSION_COOKIE, token, sessionCookieOptions(request));
   return token;
 }
 
@@ -90,13 +62,7 @@ export async function getSession(): Promise<SessionUser | null> {
   const token = jar.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, secret);
-    return {
-      id: String(payload.sub),
-      email: String(payload.email),
-      name: String(payload.name),
-      role: payload.role as SessionUser["role"],
-    };
+    return await verifySessionToken(token);
   } catch {
     return null;
   }

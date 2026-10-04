@@ -152,6 +152,7 @@ function NavLink({
   return (
     <Link
       href={item.href}
+      prefetch={false}
       onClick={onNavigate}
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 text-sm transition-colors",
@@ -250,6 +251,7 @@ export function AdminShell({
           <div className="flex items-center gap-4">
             <Link
               href="/admin/products/new"
+              prefetch={false}
               className="bg-gold px-4 py-2 text-xs font-bold uppercase tracking-wide text-black hover:bg-gold-light"
             >
               + Add product

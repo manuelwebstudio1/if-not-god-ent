@@ -7,6 +7,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { formatPrice, cn } from "@/lib/utils";
 import { PackagePlus } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminProductsPage() {
   const configured = isSupabaseConfigured();
 
