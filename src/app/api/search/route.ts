@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { searchProducts } from "@/lib/products/repository";
+import { resolveCategorySlug, searchProducts } from "@/lib/products/repository";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,7 +13,8 @@ export async function GET(request: Request) {
 
   let results = await searchProducts(q, Math.max(limit, 24));
   if (category && category !== "all") {
-    results = results.filter((p) => p.categorySlug === category);
+    const wanted = await resolveCategorySlug(category);
+    results = results.filter((p) => p.categorySlug === wanted);
   }
 
   return NextResponse.json({

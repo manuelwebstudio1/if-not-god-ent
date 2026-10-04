@@ -1,3 +1,4 @@
+import { aliasCategorySlug } from "@/data/categories";
 import { createSupabaseAdmin, createSupabasePublic, isSupabaseConfigured } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import type { Product } from "@/types/commerce";
@@ -14,8 +15,55 @@ const productSelect = `
   brands ( name, slug )
 `;
 
+type CategoryRow = {
+  id: string;
+  name: string;
+  slug: string;
+  image: string | null;
+  sort_order?: number;
+};
+
 function client(admin = false) {
-  return admin ? createSupabaseAdmin() : createSupabasePublic();
+  if (admin) {
+    try {
+      return createSupabaseAdmin();
+    } catch {
+      return createSupabasePublic();
+    }
+  }
+  return createSupabasePublic();
+}
+
+function configured() {
+  return isSupabaseConfigured();
+}
+
+export async function resolveCategorySlug(slug?: string | null): Promise<string> {
+  const incoming = slug?.trim() ?? "";
+  if (!incoming) return "";
+  const fallback = aliasCategorySlug(incoming);
+  if (!configured()) return fallback;
+  try {
+    const supabase = client();
+    const { data: direct } = await supabase
+      .from("categories")
+      .select("slug")
+      .eq("slug", incoming)
+      .maybeSingle();
+    if (direct?.slug) return direct.slug as string;
+
+    const { data: alias } = await supabase
+      .from("category_aliases")
+      .select("categories(slug)")
+      .eq("slug", incoming)
+      .maybeSingle();
+    const related = alias?.categories as { slug: string } | { slug: string }[] | null;
+    if (Array.isArray(related) && related[0]?.slug) return related[0].slug;
+    if (related && !Array.isArray(related) && related.slug) return related.slug;
+  } catch {
+    // Use the local URL alias only when the alias table is unreachable.
+  }
+  return fallback;
 }
 
 export async function listProducts(options?: {
@@ -23,7 +71,7 @@ export async function listProducts(options?: {
   featured?: boolean;
   limit?: number;
 }): Promise<Product[]> {
-  if (!isSupabaseConfigured()) return [];
+  if (!configured()) return [];
   const supabase = client(options?.admin);
   let q = supabase.from("products").select(productSelect).order("created_at", {
     ascending: false,
@@ -33,7 +81,7 @@ export async function listProducts(options?: {
   if (options?.limit) q = q.limit(options.limit);
   const { data, error } = await q;
   if (error) throw error;
-  return (data as DbProductRow[]).map(mapRowToProduct);
+  return ((data ?? []) as DbProductRow[]).map(mapRowToProduct);
 }
 
 export async function getProductBySlug(
@@ -41,36 +89,26 @@ export async function getProductBySlug(
   slug: string,
   admin = false,
 ): Promise<Product | null> {
-  if (!isSupabaseConfigured()) return null;
+  if (!configured()) return null;
+  const wanted = await resolveCategorySlug(categorySlug);
   const supabase = client(admin);
   let q = supabase.from("products").select(productSelect).eq("slug", slug);
   if (!admin) q = q.eq("is_available", true);
   const { data, error } = await q.maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  const row = data as DbProductRow;
-  if (row.categories?.slug !== categorySlug) return null;
-  return mapRowToProduct(row);
+  const product = mapRowToProduct(data as DbProductRow);
+  if (wanted && product.categorySlug !== wanted) return null;
+  return product;
 }
 
 export async function getProductsByBrand(brandSlug: string): Promise<Product[]> {
-  if (!isSupabaseConfigured()) return [];
-  const { data, error } = await client()
-    .from("products")
-    .select(productSelect)
-    .eq("is_available", true)
-    .eq("brands.slug", brandSlug);
-  if (error) {
-    const { data: all } = await client().from("products").select(productSelect).eq("is_available", true);
-    return (all as DbProductRow[])
-      .filter((p) => p.brands?.slug === brandSlug)
-      .map(mapRowToProduct);
-  }
-  return (data as DbProductRow[]).map(mapRowToProduct);
+  const all = await listProducts();
+  return all.filter((p) => p.brandSlug === brandSlug);
 }
 
 export async function searchProducts(query: string, limit = 12): Promise<Product[]> {
-  if (!isSupabaseConfigured() || !query.trim()) return [];
+  if (!query.trim() || !configured()) return [];
   const q = query.trim();
   const supabase = client();
   const { data, error } = await supabase
@@ -80,46 +118,20 @@ export async function searchProducts(query: string, limit = 12): Promise<Product
     .or(`name.ilike.%${q}%,sku.ilike.%${q}%,short_description.ilike.%${q}%`)
     .limit(limit);
   if (error) throw error;
-  let rows = data as DbProductRow[];
-  if (rows.length === 0) {
-    const { data: brandHit } = await supabase
-      .from("brands")
-      .select("id")
-      .ilike("name", `%${q}%`)
-      .limit(1)
-      .maybeSingle();
-    if (brandHit) {
-      const { data: byBrand } = await supabase
-        .from("products")
-        .select(productSelect)
-        .eq("is_available", true)
-        .eq("brand_id", brandHit.id)
-        .limit(limit);
-      rows = (byBrand as DbProductRow[]) ?? [];
-    }
-  }
-  return rows.map(mapRowToProduct);
+  return ((data ?? []) as DbProductRow[]).map(mapRowToProduct);
 }
 
-export async function filterProducts(filters: ShopFilters): Promise<Product[]> {
-  if (!isSupabaseConfigured()) return [];
-  const supabase = client();
-  let q = supabase.from("products").select(productSelect).eq("is_available", true);
-
-  if (filters.inStock) q = q.gt("stock", 0);
-  if (filters.onSale) q = q.not("compare_at_price", "is", null);
-  if (filters.isNew) q = q.eq("is_new", true);
-  if (filters.minPrice != null) q = q.gte("price", filters.minPrice);
-  if (filters.maxPrice != null) q = q.lte("price", filters.maxPrice);
-  if (filters.minRating != null) q = q.gte("rating", filters.minRating);
-
-  const { data, error } = await q;
-  if (error) throw error;
-  let products = (data as DbProductRow[]).map(mapRowToProduct);
-
+function applyShopFilters(products: Product[], filters: ShopFilters) {
+  let next = [...products];
+  if (filters.inStock) next = next.filter((p) => p.stock > 0);
+  if (filters.onSale) next = next.filter((p) => p.compareAtPrice != null);
+  if (filters.isNew) next = next.filter((p) => p.isNew);
+  if (filters.minPrice != null) next = next.filter((p) => p.price >= filters.minPrice!);
+  if (filters.maxPrice != null) next = next.filter((p) => p.price <= filters.maxPrice!);
+  if (filters.minRating != null) next = next.filter((p) => p.rating >= filters.minRating!);
   if (filters.search) {
     const s = filters.search.toLowerCase();
-    products = products.filter(
+    next = next.filter(
       (p) =>
         p.name.toLowerCase().includes(s) ||
         p.brand.toLowerCase().includes(s) ||
@@ -128,11 +140,28 @@ export async function filterProducts(filters: ShopFilters): Promise<Product[]> {
     );
   }
   if (filters.category) {
-    products = products.filter((p) => p.categorySlug === filters.category);
+    const wanted = aliasCategorySlug(filters.category);
+    next = next.filter((p) => p.categorySlug === wanted);
   }
   if (filters.brand) {
-    products = products.filter((p) => p.brandSlug === filters.brand);
+    next = next.filter((p) => p.brandSlug === filters.brand);
   }
+  return next;
+}
+
+export async function filterProducts(filters: ShopFilters): Promise<Product[]> {
+  if (!configured()) return [];
+  const supabase = client();
+  const { data, error } = await supabase
+    .from("products")
+    .select(productSelect)
+    .eq("is_available", true);
+  if (error) throw error;
+  let products = ((data ?? []) as DbProductRow[]).map(mapRowToProduct);
+  if (filters.category) {
+    filters = { ...filters, category: await resolveCategorySlug(filters.category) };
+  }
+  products = applyShopFilters(products, filters);
 
   switch (filters.sort) {
     case "newest":
@@ -169,38 +198,33 @@ export async function getRelatedProducts(product: Product, limit = 4) {
     .slice(0, limit);
 }
 
-export async function listCategories() {
-  if (!isSupabaseConfigured()) return [];
-  const { data, error } = await client().from("categories").select("*").order("name");
+export async function listCategories(): Promise<CategoryRow[]> {
+  if (!configured()) return [];
+  const { data, error } = await client()
+    .from("categories")
+    .select("id, name, slug, image, sort_order")
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as CategoryRow[];
 }
 
 export async function listCategoriesWithCounts(): Promise<Category[]> {
-  if (!isSupabaseConfigured()) return [];
-  const cats = await listCategories();
-  if (!cats.length) return [];
-  const { data: rows, error } = await client()
-    .from("products")
-    .select("category_id")
-    .eq("is_available", true);
-  if (error) throw error;
-  const counts = new Map<string, number>();
-  for (const row of rows ?? []) {
-    const id = row.category_id as string;
-    counts.set(id, (counts.get(id) ?? 0) + 1);
-  }
-  return cats.map((c) => ({
-    id: c.id as string,
-    name: c.name as string,
-    slug: c.slug as string,
-    image: (c.image as string | null) || DEFAULT_CATEGORY_IMAGE,
-    productCount: counts.get(c.id as string) ?? 0,
+  const [remote, products] = await Promise.all([
+    listCategories(),
+    listProducts({ admin: true }).catch(() => [] as Product[]),
+  ]);
+  return remote.map((c) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    image: c.image || DEFAULT_CATEGORY_IMAGE,
+    productCount: products.filter((p) => p.categorySlug === c.slug).length,
   }));
 }
 
 export async function getBrandBySlug(slug: string): Promise<Brand | null> {
-  if (!isSupabaseConfigured()) return null;
+  if (!configured()) return null;
   const { data, error } = await client()
     .from("brands")
     .select("*")
@@ -217,10 +241,8 @@ export async function getBrandBySlug(slug: string): Promise<Brand | null> {
 }
 
 export async function listBrandsForStore(): Promise<Brand[]> {
-  if (!isSupabaseConfigured()) return [];
-  const { data, error } = await client().from("brands").select("*").order("name");
-  if (error) throw error;
-  return (data ?? []).map((b) => ({
+  const rows = await listBrands();
+  return rows.map((b) => ({
     id: b.id as string,
     name: b.name as string,
     slug: b.slug as string,
@@ -238,7 +260,7 @@ export async function listLowStockProducts(threshold = 5) {
 }
 
 export async function listSubcategories(categoryId?: string) {
-  if (!isSupabaseConfigured()) return [];
+  if (!configured()) return [];
   let q = client().from("subcategories").select("*").order("name");
   if (categoryId) q = q.eq("category_id", categoryId);
   const { data, error } = await q;
@@ -247,24 +269,84 @@ export async function listSubcategories(categoryId?: string) {
 }
 
 export async function listBrands() {
-  if (!isSupabaseConfigured()) return [];
+  if (!configured()) return [];
   const { data, error } = await client().from("brands").select("*").order("name");
   if (error) throw error;
   return data ?? [];
 }
 
+export async function createCategory(input: {
+  name: string;
+  slug?: string;
+  image?: string;
+}) {
+  const supabase = createSupabaseAdmin();
+  const { data: last } = await supabase
+    .from("categories")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const { data, error } = await supabase
+    .from("categories")
+    .insert({
+      name: input.name,
+      slug: input.slug?.trim() || slugify(input.name),
+      image: input.image || null,
+      sort_order: ((last?.sort_order as number | undefined) ?? 0) + 1,
+    })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function createBrand(input: { name: string; slug?: string }) {
+  const { data, error } = await createSupabaseAdmin()
+    .from("brands")
+    .insert({
+      name: input.name,
+      slug: input.slug?.trim() || slugify(input.name),
+    })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function createSubcategory(input: {
+  name: string;
+  slug?: string;
+  categoryId: string;
+}) {
+  const { data, error } = await createSupabaseAdmin()
+    .from("subcategories")
+    .insert({
+      name: input.name,
+      slug: input.slug?.trim() || slugify(input.name),
+      category_id: input.categoryId,
+    })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function createProduct(input: ProductInput) {
   const supabase = createSupabaseAdmin();
   const slug = input.slug?.trim() || slugify(input.name);
+  const sku =
+    input.sku?.trim() ||
+    `${slug.slice(0, 12).replace(/-/g, "").toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
   const { data, error } = await supabase
     .from("products")
     .insert({
       name: input.name,
       slug,
-      sku: input.sku,
+      sku,
       category_id: input.categoryId,
       subcategory_id: input.subcategoryId ?? null,
-      brand_id: input.brandId,
+      brand_id: input.brandId ?? null,
       price: input.price,
       compare_at_price: input.compareAtPrice ?? null,
       stock: input.stock,
@@ -336,18 +418,18 @@ export async function getProductById(id: string) {
 }
 
 export async function getProductsByIds(ids: string[]) {
-  if (!ids.length || !isSupabaseConfigured()) return [];
+  if (!ids.length || !configured()) return [];
   const { data, error } = await client()
     .from("products")
     .select(productSelect)
     .in("id", ids)
     .eq("is_available", true);
   if (error) throw error;
-  return (data as DbProductRow[]).map(mapRowToProduct);
+  return ((data ?? []) as DbProductRow[]).map(mapRowToProduct);
 }
 
 export async function countProducts(admin = false) {
-  if (!isSupabaseConfigured()) return 0;
+  if (!configured()) return 0;
   let q = client(admin).from("products").select("*", { count: "exact", head: true });
   if (!admin) q = q.eq("is_available", true);
   const { count, error } = await q;

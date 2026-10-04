@@ -5,12 +5,14 @@ import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { WhatsAppFloat } from "@/components/layout/whatsapp-float";
 import { listCategoriesWithCounts } from "@/lib/products/repository";
 
+export const dynamic = "force-dynamic";
+
 export default async function SiteLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const categories = await listCategoriesWithCounts();
+  const categories = await listCategoriesWithCounts().catch(() => []);
 
   return (
     <>

@@ -38,6 +38,7 @@ type HeaderProps = {
 };
 
 export function Header({ categories = [] }: HeaderProps) {
+  const navCategories = categories;
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -89,11 +90,11 @@ export function Header({ categories = [] }: HeaderProps) {
           </ul>
           <div className="flex items-center gap-4">
             <a
-              href={`tel:${siteConfig.phoneRaw}`}
+              href="tel:233502889487"
               className="flex items-center gap-1 hover:text-gold"
             >
               <Phone className="h-3.5 w-3.5" />
-              {siteConfig.phone}
+              +233 50 288 9487
             </a>
             <a
               href={`mailto:${siteConfig.email}`}
@@ -121,16 +122,16 @@ export function Header({ categories = [] }: HeaderProps) {
           <Logo className="shrink-0 lg:mr-2" variant="mark" />
 
           <div className="hidden flex-1 lg:block">
-            <SearchBar categories={categories} />
+            <SearchBar categories={navCategories} />
           </div>
 
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
             <Link
               href="/account"
-              className="hidden flex-col items-center px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-300 hover:text-white sm:flex"
+              className="flex flex-col items-center px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-300 hover:text-white"
             >
               <User className="mb-0.5 h-5 w-5" />
-              Account
+              <span className="hidden sm:inline">Account</span>
             </Link>
             <Link
               href="/account/wishlist"
@@ -162,7 +163,7 @@ export function Header({ categories = [] }: HeaderProps) {
 
         {/* Mobile search */}
         <div className="ing-container pb-3 lg:hidden">
-          <SearchBar categories={categories} />
+          <SearchBar categories={navCategories} />
         </div>
       </div>
 
@@ -180,7 +181,7 @@ export function Header({ categories = [] }: HeaderProps) {
             </button>
             {catOpen && (
               <div className="absolute left-0 top-full z-50 mt-0 w-72 border border-neutral-700 bg-black py-2 shadow-2xl">
-                {categories.map((c) => (
+                {navCategories.map((c) => (
                   <Link
                     key={c.id}
                     href={`/shop?category=${c.slug}`}
@@ -249,7 +250,7 @@ export function Header({ categories = [] }: HeaderProps) {
               <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gold">
                 Categories
               </p>
-              {categories.map((c) => (
+              {navCategories.map((c) => (
                 <Link
                   key={c.id}
                   href={`/shop?category=${c.slug}`}

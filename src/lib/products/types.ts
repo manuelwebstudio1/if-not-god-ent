@@ -5,7 +5,7 @@ export type DbProductRow = {
   sku: string;
   category_id: string;
   subcategory_id: string | null;
-  brand_id: string;
+  brand_id: string | null;
   price: number;
   compare_at_price: number | null;
   stock: number;
@@ -32,10 +32,10 @@ export type DbProductRow = {
 export type ProductInput = {
   name: string;
   slug?: string;
-  sku: string;
+  sku?: string;
   categoryId: string;
   subcategoryId?: string | null;
-  brandId: string;
+  brandId?: string | null;
   price: number;
   compareAtPrice?: number | null;
   stock: number;

@@ -1,17 +1,16 @@
 "use client";
 
 import { ProductCard } from "@/components/product/product-card";
-import type { Brand, Category, Product } from "@/types/commerce";
+import type { Category, Product } from "@/types/commerce";
 import type { ShopFilters } from "@/lib/catalog";
 
 type Props = {
   products: Product[];
   categories: Pick<Category, "id" | "name" | "slug">[];
-  brands: Pick<Brand, "id" | "name" | "slug">[];
   filters: ShopFilters;
 };
 
-export function ShopClient({ products, categories, brands, filters }: Props) {
+export function ShopClient({ products, categories, filters }: Props) {
   return (
     <div className="ing-container py-10 lg:py-14">
       <div className="mb-8">
@@ -23,7 +22,7 @@ export function ShopClient({ products, categories, brands, filters }: Props) {
 
       <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-6 border border-neutral-200 bg-white p-5 h-fit">
-          <FilterForm filters={filters} categories={categories} brands={brands} />
+          <FilterForm filters={filters} categories={categories} />
         </aside>
 
         <div>
@@ -106,11 +105,9 @@ function SortSelect({
 function FilterForm({
   filters,
   categories,
-  brands,
 }: {
   filters: ShopFilters;
   categories: Pick<Category, "id" | "name" | "slug">[];
-  brands: Pick<Brand, "id" | "name" | "slug">[];
 }) {
   return (
     <form method="get" className="space-y-5 text-sm">
@@ -128,22 +125,6 @@ function FilterForm({
           {categories.map((c) => (
             <option key={c.id} value={c.slug}>
               {c.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="text-xs font-bold uppercase tracking-wide">Brand</label>
-        <select
-          name="brand"
-          defaultValue={filters.brand ?? ""}
-          className="mt-2 w-full border border-neutral-300 px-2 py-2 outline-none focus:border-gold"
-        >
-          <option value="">All</option>
-          {brands.map((b) => (
-            <option key={b.id} value={b.slug}>
-              {b.name}
             </option>
           ))}
         </select>

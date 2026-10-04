@@ -101,7 +101,7 @@ export function SearchBar({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          placeholder="Search for products, brands..."
+          placeholder="Search for products..."
           className="min-w-0 flex-1 bg-transparent px-3 text-sm text-white placeholder:text-neutral-500 outline-none"
           autoComplete="off"
         />

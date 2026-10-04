@@ -6,10 +6,10 @@ import { createProduct, listProducts } from "@/lib/products/repository";
 const schema = z.object({
   name: z.string().min(2),
   slug: z.string().optional(),
-  sku: z.string().min(2),
+  sku: z.string().min(2).optional(),
   categoryId: z.string().uuid(),
   subcategoryId: z.string().uuid().nullable().optional(),
-  brandId: z.string().uuid(),
+  brandId: z.string().uuid().nullable().optional(),
   price: z.number().nonnegative(),
   compareAtPrice: z.number().nonnegative().nullable().optional(),
   stock: z.number().int().nonnegative(),

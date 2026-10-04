@@ -1,8 +1,13 @@
 import { siteConfig } from "@/config/site";
 
-export function buildWhatsAppUrl(message: string) {
-  const encoded = encodeURIComponent(message);
-  return `https://wa.me/${siteConfig.whatsapp}?text=${encoded}`;
+export function getWhatsAppNumber() {
+  return "233502889487";
+}
+
+export function buildWhatsAppUrl(message?: string) {
+  const number = getWhatsAppNumber();
+  if (!message) return `https://wa.me/${number}`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
 export function buildProductWhatsAppMessage(product: {

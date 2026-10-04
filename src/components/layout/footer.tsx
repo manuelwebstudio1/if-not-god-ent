@@ -4,6 +4,7 @@ import {
   Youtube,
   Mail,
   MapPin,
+  MessageCircle,
   Phone,
 } from "lucide-react";
 import Link from "next/link";
@@ -13,7 +14,6 @@ import { Logo } from "./logo";
 const quickLinks = [
   { href: "/", label: "Home" },
   { href: "/shop", label: "Shop" },
-  { href: "/brands", label: "Brands" },
   { href: "/about", label: "About Us" },
   { href: "/services", label: "Services" },
   { href: "/blog", label: "Blog" },
@@ -125,8 +125,19 @@ export function Footer() {
           <ul className="mt-4 space-y-3 text-sm">
             <li className="flex gap-2">
               <Phone className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
-              <a href={`tel:${siteConfig.phoneRaw}`} className="hover:text-gold">
-                {siteConfig.phone}
+              <a href="tel:233502889487" className="hover:text-gold">
+                +233 50 288 9487
+              </a>
+            </li>
+            <li className="flex gap-2">
+              <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
+              <a
+                href="https://wa.me/233502889487?text=Hello%20IF%20NOT%20GOD%20ENT%2C%20I%20would%20like%20assistance%20with%20your%20products."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-gold"
+              >
+                WhatsApp +233 50 288 9487
               </a>
             </li>
             <li className="flex gap-2">

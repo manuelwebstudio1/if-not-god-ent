@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { destroySession } from "@/lib/auth";
+import { clearSessionCookie } from "@/lib/auth";
 
 export async function POST() {
-  await destroySession();
-  return NextResponse.json({ ok: true });
+  const response = NextResponse.json({ ok: true });
+  return clearSessionCookie(response);
 }
 
 export async function GET(request: Request) {
-  await destroySession();
-  return NextResponse.redirect(new URL("/", request.url));
+  const response = NextResponse.redirect(new URL("/", request.url));
+  return clearSessionCookie(response);
 }

@@ -125,10 +125,13 @@ export function ProductCard({ product }: { product: Product }) {
               onClick={() =>
                 openWhatsApp(buildProductWhatsAppMessage(product))
               }
-              className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#25D366] text-white"
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-1 bg-[#25D366] px-2 text-white sm:px-3"
               aria-label="Ask on WhatsApp"
             >
-              <MessageCircle className="h-4 w-4" />
+              <MessageCircle className="h-4 w-4 shrink-0" />
+              <span className="hidden text-[10px] font-bold uppercase sm:inline">
+                WhatsApp
+              </span>
             </button>
           </div>
         </div>

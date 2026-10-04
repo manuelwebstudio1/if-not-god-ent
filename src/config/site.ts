@@ -1,3 +1,6 @@
+const PHONE_DISPLAY = "+233 50 288 9487";
+const PHONE_RAW = "233502889487";
+
 export const siteConfig = {
   name: "IF NOT GOD ENT",
   shortName: "ING",
@@ -7,10 +10,10 @@ export const siteConfig = {
   description:
     "Premium building materials, construction tools, engineering equipment, plumbing supplies, power tools, and industrial machinery in Ghana.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  phone: process.env.NEXT_PUBLIC_PHONE ?? "+233 24 000 0000",
-  phoneRaw: process.env.NEXT_PUBLIC_PHONE_RAW ?? "233240000000",
+  phone: PHONE_DISPLAY,
+  phoneRaw: PHONE_RAW,
   email: process.env.NEXT_PUBLIC_EMAIL ?? "info@ifnotgodent.com",
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "233240000000",
+  whatsapp: PHONE_RAW,
   address: "Accra, Greater Accra Region, Ghana",
   businessHours: "Mon – Sat: 8:00 AM – 6:00 PM",
   currency: "GH₵",

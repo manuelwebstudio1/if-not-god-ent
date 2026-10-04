@@ -1,7 +1,11 @@
 import Link from "next/link";
-import { brands } from "@/data/brands";
+import { listBrandsForStore } from "@/lib/products/repository";
 
-export function BrandsSection() {
+export async function BrandsSection() {
+  const brands = await listBrandsForStore();
+
+  if (brands.length === 0) return null;
+
   return (
     <section className="border-y border-neutral-200 bg-white py-12">
       <div className="ing-container">

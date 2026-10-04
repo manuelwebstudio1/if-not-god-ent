@@ -125,16 +125,46 @@ export async function createUser(user: DbFile["users"][number]) {
   return user;
 }
 
+export async function listCustomers() {
+  const db = await readDb();
+  return db.users.filter((u) => u.role === "CUSTOMER");
+}
+
+export async function syncAdminAccount(input: {
+  email: string;
+  name: string;
+  passwordHash: string;
+}) {
+  const db = await readDb();
+  db.users = db.users.filter((u) => u.role !== "ADMIN");
+  db.users.push({
+    id: "admin-1",
+    name: input.name,
+    email: input.email.toLowerCase(),
+    passwordHash: input.passwordHash,
+    role: "ADMIN",
+  });
+  await writeDb(db);
+}
+
 export async function ensureAdminSeed(passwordHash: string) {
   const db = await readDb();
   if (!db.users.some((u) => u.role === "ADMIN")) {
     db.users.push({
       id: "admin-1",
-      name: "Administrator",
-      email: "admin@ifnotgodent.com",
+      name: "IF NOT GOD ENT Admin",
+      email: "ifnotgod@ent.com",
       passwordHash,
       role: "ADMIN",
     });
     await writeDb(db);
   }
+}
+
+export async function updateUserPasswordHash(email: string, passwordHash: string) {
+  const db = await readDb();
+  const user = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+  if (!user) return;
+  user.passwordHash = passwordHash;
+  await writeDb(db);
 }

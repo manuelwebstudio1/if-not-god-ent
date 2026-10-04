@@ -30,10 +30,10 @@ Edit `src/config/site.ts` or environment variables:
 
 ### Admin access
 
-On first login attempt, a default admin is seeded:
+Open `/admin/login` and sign in with:
 
-- Email: `admin@ifnotgodent.com`
-- Password: `ADMIN_PASSWORD` from env (default `Admin@12345`)
+- Email: `ADMIN_EMAIL` from `.env.local` (default `ifnotgod@ent.com`)
+- Password: `ADMIN_PASSWORD` from `.env.local` (default `admin12345`)
 
 Customer registration: `/account/register`
 

@@ -13,7 +13,7 @@ const schema = z.object({
   sku: z.string().min(2).optional(),
   categoryId: z.string().uuid().optional(),
   subcategoryId: z.string().uuid().nullable().optional(),
-  brandId: z.string().uuid().optional(),
+  brandId: z.string().uuid().nullable().optional(),
   price: z.number().nonnegative().optional(),
   compareAtPrice: z.number().nonnegative().nullable().optional(),
   stock: z.number().int().nonnegative().optional(),

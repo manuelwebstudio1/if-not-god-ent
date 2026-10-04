@@ -7,7 +7,6 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const redirect = params.get("redirect") ?? "/account";
   const [email, setEmail] = useState("");
@@ -22,13 +21,22 @@ export function LoginForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-    const data = (await res.json()) as { error?: string; role?: string };
+    const data = (await res.json()) as {
+      error?: string;
+      role?: string;
+      redirectTo?: string;
+    };
     if (!res.ok) {
       setError(data.error ?? "Login failed");
       return;
     }
-    router.push(data.role === "ADMIN" && redirect === "/account" ? "/admin" : redirect);
-    router.refresh();
+    const dest =
+      data.role === "ADMIN"
+        ? redirect.startsWith("/admin")
+          ? redirect
+          : "/admin"
+        : (data.redirectTo ?? redirect);
+    window.location.assign(dest);
   }
 
   return (

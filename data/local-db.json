@@ -4,9 +4,9 @@
   "users": [
     {
       "id": "admin-1",
-      "name": "Administrator",
-      "email": "admin@ifnotgodent.com",
-      "passwordHash": "$2b$12$E3YAO7OaD0B4q3a0DHgff.Yyts22qXEAkxM3xfs.hNh//ggOPntiC",
+      "name": "IF NOT GOD ENT Admin",
+      "email": "ifnotgod@ent.com",
+      "passwordHash": "$2b$12$Pzt31ZhR54IVlmm8.X.IcOJe1eoG6gf2Uq/RF0Io2miHUnKk4ApHi",
       "role": "ADMIN"
     }
   ]

@@ -9,7 +9,7 @@ import { useCartStore } from "@/stores/cart-store";
 const items = [
   { href: "/", label: "Home", icon: Home },
   { href: "/shop", label: "Shop", icon: ShoppingBag },
-  { href: "/shop?categories=1", label: "Categories", icon: Grid3X3 },
+  { href: "/#shop-by-category", label: "Categories", icon: Grid3X3 },
   { href: "/account/wishlist", label: "Wishlist", icon: Heart },
   { href: "#cart", label: "Cart", icon: ShoppingCart, isCart: true },
 ];

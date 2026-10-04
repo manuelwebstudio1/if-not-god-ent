@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
+import { buildWhatsAppUrl } from "@/lib/whatsapp";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -20,16 +21,18 @@ export default async function ContactPage({
         <ul className="mt-6 space-y-4 text-sm">
           <li>
             <strong className="block text-xs uppercase text-muted">Phone</strong>
-            <a href={`tel:${siteConfig.phoneRaw}`}>{siteConfig.phone}</a>
+            <a href="tel:233502889487">+233 50 288 9487</a>
           </li>
           <li>
             <strong className="block text-xs uppercase text-muted">WhatsApp</strong>
             <a
-              href={`https://wa.me/${siteConfig.whatsapp}`}
+              href={buildWhatsAppUrl(
+                `Hello ${siteConfig.name}, I would like assistance with your products.`,
+              )}
               target="_blank"
               rel="noopener noreferrer"
             >
-              Chat on WhatsApp
+              WhatsApp +233 50 288 9487
             </a>
           </li>
           <li>
@@ -55,7 +58,11 @@ export default async function ContactPage({
             project.
           </p>
           <Link
-            href={`https://wa.me/${siteConfig.whatsapp}`}
+            href={buildWhatsAppUrl(
+              `Hello ${siteConfig.name}, I need help finding the right equipment.`,
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-4 inline-block bg-gold px-6 py-3 text-xs font-bold uppercase text-black"
           >
             Talk To An Expert

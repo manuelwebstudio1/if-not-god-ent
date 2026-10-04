@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSession, registerUser } from "@/lib/auth";
+import { attachSessionCookie, registerUser, signSessionToken } from "@/lib/auth";
 
 const schema = z.object({
   name: z.string().min(2),
@@ -13,13 +13,15 @@ export async function POST(request: Request) {
   try {
     const body = schema.parse(await request.json());
     const user = await registerUser(body);
-    await createSession({
+    const token = await signSessionToken({
       id: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
     });
-    return NextResponse.json({ ok: true });
+    const response = NextResponse.json({ ok: true });
+    attachSessionCookie(response, token, request.url);
+    return response;
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Registration failed";

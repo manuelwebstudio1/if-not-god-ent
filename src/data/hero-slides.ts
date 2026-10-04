@@ -1,7 +1,6 @@
 /**
- * Your custom hero photography (/public/images/hero).
- * Left→right in your set: generator · triptych · grinder.
- * Slider order: 3rd first, then 1st, then 2nd → grinder → generator → triptych.
+ * Custom hero photography in /public/images/hero.
+ * Slider order: grinder → generator → triptych.
  */
 export const heroSlides = [
   {
