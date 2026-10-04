@@ -20,6 +20,14 @@ export default async function AdminLoginPage() {
     <div className="relative flex min-h-screen items-center justify-center bg-black px-4 py-12">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(201,162,39,0.12),_transparent_55%)]" />
       <div className="relative w-full max-w-md border border-neutral-800 bg-neutral-950 p-8 shadow-2xl">
+        <span className="relative mb-4 block h-12 w-[6.5rem] overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/brand/ing-logo.png"
+            alt="ING"
+            className="h-full w-full scale-[1.85] object-contain invert"
+          />
+        </span>
         <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-gold">
           Administrator
         </p>

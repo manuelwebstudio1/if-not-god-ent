@@ -180,6 +180,14 @@ export function AdminShell({
     <div className="flex h-full flex-col bg-black text-white">
       <div className="border-b border-neutral-800 px-5 py-5">
         <Link href="/admin" className="block">
+          <span className="relative mb-2 block h-10 w-[5.5rem] overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/brand/ing-logo.png"
+              alt="ING"
+              className="h-full w-full scale-[1.85] object-contain invert"
+            />
+          </span>
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold">
             Control Center
           </p>
