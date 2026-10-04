@@ -33,7 +33,7 @@ const pillars = [
   {
     icon: Eye,
     title: "Our Vision",
-    body: "To become West Africa’s most respected partner for professional construction and engineering supply.",
+    body: "To become West Africa's most respected partner for professional construction and engineering supply.",
   },
 ];
 
@@ -104,20 +104,31 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="border-y border-neutral-800 bg-black py-8 text-white">
-        <div className="ing-container grid gap-6 sm:grid-cols-3">
-          {[
-            ["Accra based", "Serving Ghana nationwide"],
-            ["3 core lines", "Materials, pumps and machines"],
-            ["Project ready", "Retail, bulk and site supply"],
-          ].map(([label, value]) => (
-            <div key={label} className="border-l-2 border-gold pl-4">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
-                {label}
-              </p>
-              <p className="mt-1 text-sm text-neutral-300">{value}</p>
-            </div>
-          ))}
+      <section className="border-y border-neutral-800 bg-black py-5 text-white">
+        <div className="trust-ticker relative overflow-hidden">
+          <div className="trust-ticker-track flex w-max items-center">
+            {[
+              ["Accra based", "Serving Ghana nationwide"],
+              ["3 core lines", "Materials, pumps and machines"],
+              ["Project ready", "Retail, bulk and site supply"],
+              ["Accra based", "Serving Ghana nationwide"],
+              ["3 core lines", "Materials, pumps and machines"],
+              ["Project ready", "Retail, bulk and site supply"],
+            ].map(([label, value], i) => (
+              <div
+                key={`${label}-${i}`}
+                className="flex shrink-0 items-center gap-4 px-10"
+              >
+                <span className="h-8 w-0.5 bg-gold" />
+                <p className="whitespace-nowrap text-xs font-bold uppercase tracking-[0.2em] text-gold">
+                  {label}
+                  <span className="ml-3 font-medium normal-case tracking-normal text-neutral-300">
+                    {value}
+                  </span>
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
