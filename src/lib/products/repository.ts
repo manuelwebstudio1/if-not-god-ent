@@ -11,8 +11,7 @@ import { DEFAULT_CATEGORY_IMAGE } from "./defaults";
 const productSelect = `
   *,
   categories ( name, slug ),
-  subcategories ( name, slug ),
-  brands ( name, slug )
+  subcategories ( name, slug )
 `;
 
 type CategoryRow = {
@@ -36,6 +35,59 @@ function client(admin = false) {
 
 function configured() {
   return isSupabaseConfigured();
+}
+
+function mapRows(rows: DbProductRow[], categories: CategoryRow[] = []) {
+  return rows.flatMap((row) => {
+    try {
+      const joined = row.categories;
+      const category = Array.isArray(joined) ? joined[0] : joined;
+      const fallback = categories.find((item) => item.id === row.category_id);
+      return [
+        mapRowToProduct({
+          ...row,
+          categories: category ?? (fallback ? { name: fallback.name, slug: fallback.slug } : null),
+        }),
+      ];
+    } catch {
+      return [];
+    }
+  });
+}
+
+async function fetchProductRows(options?: {
+  admin?: boolean;
+  featured?: boolean;
+  limit?: number;
+}) {
+  const attempts: Array<{ adminClient: boolean; select: string }> = [];
+  if (options?.admin) {
+    attempts.push({ adminClient: true, select: productSelect });
+    attempts.push({ adminClient: true, select: "*" });
+  }
+  attempts.push({ adminClient: false, select: productSelect });
+  attempts.push({ adminClient: false, select: "*" });
+
+  for (const attempt of attempts) {
+    try {
+      const supabase = client(attempt.adminClient);
+      let q = supabase.from("products").select(attempt.select).order("created_at", {
+        ascending: false,
+      });
+      if (!options?.admin || !attempt.adminClient) q = q.eq("is_available", true);
+      if (options?.featured) q = q.eq("is_featured", true);
+      if (options?.limit) q = q.limit(options.limit);
+      const { data, error } = await q;
+      if (error || !data) continue;
+      const categories = data.some((row) => !(row as DbProductRow).categories)
+        ? await listCategories()
+        : [];
+      return mapRows(data as DbProductRow[], categories);
+    } catch {
+      // Try the next client/select combination.
+    }
+  }
+  return [];
 }
 
 export async function resolveCategorySlug(slug?: string | null): Promise<string> {
@@ -72,20 +124,7 @@ export async function listProducts(options?: {
   limit?: number;
 }): Promise<Product[]> {
   if (!configured()) return [];
-  try {
-    const supabase = client(options?.admin);
-    let q = supabase.from("products").select(productSelect).order("created_at", {
-      ascending: false,
-    });
-    if (!options?.admin) q = q.eq("is_available", true);
-    if (options?.featured) q = q.eq("is_featured", true);
-    if (options?.limit) q = q.limit(options.limit);
-    const { data, error } = await q;
-    if (error) return [];
-    return ((data ?? []) as DbProductRow[]).map(mapRowToProduct);
-  } catch {
-    return [];
-  }
+  return fetchProductRows(options);
 }
 
 export async function getProductBySlug(
