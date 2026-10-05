@@ -29,7 +29,8 @@ const schema = z.object({
 export async function GET() {
   try {
     await requireAdminSession();
-    const products = await listProducts({ admin: true });
+    const adminProducts = await listProducts({ admin: true });
+    const products = adminProducts.length ? adminProducts : await listProducts();
     return NextResponse.json({ products });
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

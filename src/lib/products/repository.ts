@@ -55,36 +55,76 @@ function mapRows(rows: DbProductRow[], categories: CategoryRow[] = []) {
   });
 }
 
+async function queryProductRows(options?: {
+  adminClient?: boolean;
+  availableOnly?: boolean;
+  featured?: boolean;
+  limit?: number;
+  select?: string;
+}) {
+  const supabase = client(options?.adminClient);
+  let q = supabase
+    .from("products")
+    .select(options?.select ?? productSelect)
+    .order("created_at", { ascending: false });
+  if (options?.availableOnly) q = q.eq("is_available", true);
+  if (options?.featured) q = q.eq("is_featured", true);
+  if (options?.limit) q = q.limit(options.limit);
+  const { data, error } = await q;
+  if (error || !data?.length) return [];
+  const categories = data.some((row) => !(row as DbProductRow).categories)
+    ? await listCategories()
+    : [];
+  return mapRows(data as DbProductRow[], categories);
+}
+
 async function fetchProductRows(options?: {
   admin?: boolean;
   featured?: boolean;
   limit?: number;
 }) {
-  const attempts: Array<{ adminClient: boolean; select: string }> = [];
-  if (options?.admin) {
-    attempts.push({ adminClient: true, select: productSelect });
-    attempts.push({ adminClient: true, select: "*" });
-  }
-  attempts.push({ adminClient: false, select: productSelect });
-  attempts.push({ adminClient: false, select: "*" });
+  const shared = {
+    featured: options?.featured,
+    limit: options?.limit,
+  };
 
-  for (const attempt of attempts) {
+  // The public catalog read is the one that already works on Vercel.
+  // Use it first so All Products cannot get stuck on an empty service-role result.
+  try {
+    const published = await queryProductRows({
+      ...shared,
+      adminClient: false,
+      availableOnly: true,
+      select: productSelect,
+    });
+    if (published.length) {
+      if (!options?.admin) return published;
+      try {
+        const all = await queryProductRows({
+          ...shared,
+          adminClient: true,
+          availableOnly: false,
+          select: productSelect,
+        });
+        if (all.length) return all;
+      } catch {
+        // Keep the published catalog when the admin client is unavailable.
+      }
+      return published;
+    }
+  } catch {
+    // Fall through to a simpler select.
+  }
+
+  for (const attempt of [
+    { adminClient: false, availableOnly: true, select: "*" },
+    { adminClient: Boolean(options?.admin), availableOnly: !options?.admin, select: "*" },
+  ]) {
     try {
-      const supabase = client(attempt.adminClient);
-      let q = supabase.from("products").select(attempt.select).order("created_at", {
-        ascending: false,
-      });
-      if (!options?.admin || !attempt.adminClient) q = q.eq("is_available", true);
-      if (options?.featured) q = q.eq("is_featured", true);
-      if (options?.limit) q = q.limit(options.limit);
-      const { data, error } = await q;
-      if (error || !data) continue;
-      const categories = data.some((row) => !(row as DbProductRow).categories)
-        ? await listCategories()
-        : [];
-      return mapRows(data as DbProductRow[], categories);
+      const rows = await queryProductRows({ ...shared, ...attempt });
+      if (rows.length) return rows;
     } catch {
-      // Try the next client/select combination.
+      // Try the next combination.
     }
   }
   return [];
