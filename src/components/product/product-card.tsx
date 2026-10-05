@@ -47,7 +47,7 @@ export function ProductCard({ product }: { product: Product }) {
               alt={product.name}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width:768px) 50vw, 25vw"
+              sizes="(max-width:768px) 50vw, 40vw"
             />
           </Link>
           <button

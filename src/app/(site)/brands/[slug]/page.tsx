@@ -33,7 +33,7 @@ export default async function BrandPage({ params }: Props) {
       {products.length === 0 ? (
         <p className="mt-8 text-sm text-muted">No products for this brand yet.</p>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

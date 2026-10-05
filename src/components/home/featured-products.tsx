@@ -3,7 +3,7 @@ import { ProductCard } from "@/components/product/product-card";
 import { listProducts } from "@/lib/products/repository";
 
 export async function FeaturedProducts() {
-  const products = await listProducts({ featured: true, limit: 8 });
+  const products = await listProducts({ featured: true, limit: 4 });
 
   return (
     <section className="bg-surface py-14 lg:py-16">
@@ -24,7 +24,7 @@ export async function FeaturedProducts() {
             Featured products will appear here once added in the admin dashboard.
           </p>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
